@@ -20,11 +20,52 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const spotsLeft = details.max_participants - details.participants.length;
 
+        // Helpers to format participant display
+        function formatName(email) {
+          if (!email) return email;
+          const local = email.split("@")[0];
+          const parts = local.split(/[\.\-_]/).filter(Boolean);
+          if (parts.length === 0) return email;
+          return parts.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(" ");
+        }
+        function initials(email) {
+          const local = email.split("@")[0];
+          const parts = local.split(/[\.\-_]/).filter(Boolean);
+          if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+          return (parts[0][0] + parts[1][0]).toUpperCase();
+        }
+
+        // Build participants HTML (pretty, with inline styles)
+        const participantsHTML =
+          details.participants && details.participants.length > 0
+            ? `<div class="participants" style="margin-top:12px;">
+                <div style="font-weight:600;margin-bottom:6px;color:#2d3748;">Participants</div>
+                <ul style="list-style:none;padding:0;margin:0;">
+                  ${details.participants
+                    .map(email => {
+                      const name = formatName(email);
+                      const init = initials(email);
+                      return `<li style="display:flex;align-items:center;gap:10px;padding:6px 0;border-top:1px solid rgba(0,0,0,0.04);">
+                                <span style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#6c5ce7,#a29bfe);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex:0 0 36px;">
+                                  ${init}
+                                </span>
+                                <span style="display:flex;flex-direction:column;">
+                                  <span style="font-size:14px;color:#111827;">${name}</span>
+                                  <small style="color:#6b7280;">${email}</small>
+                                </span>
+                              </li>`;
+                    })
+                    .join("")}
+                </ul>
+              </div>`
+            : `<p style="margin-top:12px;font-style:italic;color:#6b7280;">No participants yet</p>`;
+
         activityCard.innerHTML = `
-          <h4>${name}</h4>
-          <p>${details.description}</p>
-          <p><strong>Schedule:</strong> ${details.schedule}</p>
-          <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
+          <h4 style="margin:0 0 6px 0;">${name}</h4>
+          <p style="margin:0 0 8px 0;color:#374151;">${details.description}</p>
+          <p style="margin:0 0 4px 0;"><strong>Schedule:</strong> ${details.schedule}</p>
+          <p style="margin:0 0 8px 0;"><strong>Availability:</strong> ${spotsLeft} spots left</p>
+          ${participantsHTML}
         `;
 
         activitiesList.appendChild(activityCard);
