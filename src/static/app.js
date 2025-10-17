@@ -12,6 +12,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Clear loading message
       activitiesList.innerHTML = "";
+      // Reset activity select options to avoid duplicates on refresh
+      activitySelect.innerHTML = '<option value="">-- Select an activity --</option>';
 
       // Populate activities list
       Object.entries(activities).forEach(([name, details]) => {
@@ -45,12 +47,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     .map(email => {
                       const name = formatName(email);
                       const init = initials(email);
-                      return `<li class="participant-item">
+                      // include a delete button for unregistering
+                      return `<li class="participant-item" data-email="${email}" data-activity="${name}">
                                 <span class="avatar">${init}</span>
                                 <span class="participant-info">
                                   <span class="participant-name">${name}</span>
                                   <small class="participant-email">${email}</small>
                                 </span>
+                                <button class="delete-btn" title="Unregister" data-email="${email}" data-activity="${name}">×</button>
                               </li>`;
                     })
                     .join("")}
@@ -74,6 +78,7 @@ document.addEventListener("DOMContentLoaded", () => {
         option.textContent = name;
         activitySelect.appendChild(option);
       });
+      
     } catch (error) {
       activitiesList.innerHTML = "<p>Failed to load activities. Please try again later.</p>";
       console.error("Error fetching activities:", error);
@@ -101,6 +106,8 @@ document.addEventListener("DOMContentLoaded", () => {
         messageDiv.textContent = result.message;
         messageDiv.className = "success";
         signupForm.reset();
+        // Refresh activities so the newly registered participant appears
+        fetchActivities();
       } else {
         messageDiv.textContent = result.detail || "An error occurred";
         messageDiv.className = "error";
@@ -117,6 +124,48 @@ document.addEventListener("DOMContentLoaded", () => {
       messageDiv.className = "error";
       messageDiv.classList.remove("hidden");
       console.error("Error signing up:", error);
+    }
+  });
+
+  // Delegated click handler for delete/unregister buttons (attach once)
+  activitiesList.addEventListener("click", async (e) => {
+    const btn = e.target.closest('.delete-btn');
+    if (!btn) return;
+
+    const email = btn.dataset.email;
+    const activity = btn.dataset.activity;
+
+    if (!email || !activity) return;
+
+    if (!confirm(`Unregister ${email} from ${activity}?`)) return;
+
+    try {
+      const resp = await fetch(
+        `/activities/${encodeURIComponent(activity)}/signup?email=${encodeURIComponent(email)}`,
+        { method: 'DELETE' }
+      );
+
+      const result = await resp.json();
+      if (resp.ok) {
+        messageDiv.textContent = result.message || 'Unregistered successfully';
+        messageDiv.className = 'success';
+        messageDiv.classList.remove('hidden');
+        // Refresh activities list to reflect change
+        fetchActivities();
+      } else {
+        messageDiv.textContent = result.detail || 'Failed to unregister';
+        messageDiv.className = 'error';
+        messageDiv.classList.remove('hidden');
+      }
+
+      setTimeout(() => {
+        messageDiv.classList.add('hidden');
+      }, 4000);
+    } catch (err) {
+      messageDiv.textContent = 'Failed to unregister. Please try again.';
+      messageDiv.className = 'error';
+      messageDiv.classList.remove('hidden');
+      console.error('Error unregistering:', err);
     }
   });
 
