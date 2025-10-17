@@ -35,30 +35,28 @@ document.addEventListener("DOMContentLoaded", () => {
           return (parts[0][0] + parts[1][0]).toUpperCase();
         }
 
-        // Build participants HTML (pretty, with inline styles)
+        // Build participants HTML using CSS classes (no inline styles)
         const participantsHTML =
           details.participants && details.participants.length > 0
-            ? `<div class="participants" style="margin-top:12px;">
-                <div style="font-weight:600;margin-bottom:6px;color:#2d3748;">Participants</div>
-                <ul style="list-style:none;padding:0;margin:0;">
+            ? `<div class="participants">
+                <div class="participants-title">Participants</div>
+                <ul class="participant-list">
                   ${details.participants
                     .map(email => {
                       const name = formatName(email);
                       const init = initials(email);
-                      return `<li style="display:flex;align-items:center;gap:10px;padding:6px 0;border-top:1px solid rgba(0,0,0,0.04);">
-                                <span style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#6c5ce7,#a29bfe);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex:0 0 36px;">
-                                  ${init}
-                                </span>
-                                <span style="display:flex;flex-direction:column;">
-                                  <span style="font-size:14px;color:#111827;">${name}</span>
-                                  <small style="color:#6b7280;">${email}</small>
+                      return `<li class="participant-item">
+                                <span class="avatar">${init}</span>
+                                <span class="participant-info">
+                                  <span class="participant-name">${name}</span>
+                                  <small class="participant-email">${email}</small>
                                 </span>
                               </li>`;
                     })
                     .join("")}
                 </ul>
               </div>`
-            : `<p style="margin-top:12px;font-style:italic;color:#6b7280;">No participants yet</p>`;
+            : `<p class="participants-empty">No participants yet</p>`;
 
         activityCard.innerHTML = `
           <h4 style="margin:0 0 6px 0;">${name}</h4>
